@@ -1,0 +1,48 @@
+package br.com.caiofernandes.pedido.api.config;
+
+import org.springframework.amqp.core.Exchange;
+import org.springframework.amqp.core.FanoutExchange;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.converter.JacksonJsonMessageConverter;
+import org.springframework.messaging.converter.MessageConverter;
+
+import java.util.concurrent.Exchanger;
+
+@Configuration
+public class RabbitMQConfiguration {
+    @Value("${rabbitmq.exchange.name}")
+    private String exchangeName;
+
+    @Bean
+    public Exchange pedidosExchange(){
+        return new FanoutExchange(exchangeName);
+    }
+
+    @Bean
+    public RabbitAdmin rabbitAdmin(ConnectionFactory connectionFactory){
+        return new RabbitAdmin(connectionFactory);
+    }
+
+    @Bean
+    public MessageConverter jsonMessageConverter() {
+        // Configuração correta para Spring Boot 3.x
+        return new JacksonJsonMessageConverter();
+    }
+
+    @Bean
+    public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory, MessageConverter messageConverter){
+        return new RabbitTemplate(connectionFactory);
+    }
+
+    @Bean
+    public ApplicationListener<ApplicationReadyEvent> applicationReadyEventApplicationListener(RabbitAdmin rabbitAdmin){
+        return event -> rabbitAdmin.initialize();
+    }
+}
