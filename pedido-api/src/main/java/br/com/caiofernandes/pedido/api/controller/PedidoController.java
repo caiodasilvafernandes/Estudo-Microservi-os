@@ -3,6 +3,7 @@ package br.com.caiofernandes.pedido.api.controller;
 import br.com.caiofernandes.pedido.api.dto.PedidoReqDTO;
 import br.com.caiofernandes.pedido.api.entity.Pedido;
 import br.com.caiofernandes.pedido.api.entity.enums.Status;
+import br.com.caiofernandes.pedido.api.service.PedidoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -10,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,6 +27,9 @@ import java.util.UUID;
 @RequestMapping("/api/v1/pedidos")
 public class PedidoController {
     private final Logger logger = LoggerFactory.getLogger(PedidoController.class);
+
+    @Autowired
+    private PedidoService pedidoService;
 
     @Operation(summary = "Cria pedido",
                description = "Contem as operações para serializar e criar o pedido",
@@ -45,6 +50,8 @@ public class PedidoController {
         pedido.setItens(request.itens());
         pedido.setValorTotal(request.valorTotal());
         pedido.setEmailNotification(request.emailNotification());
+
+        pedido = pedidoService.enfileirarPedido(pedido);
 
         logger.info("Pedido Recebido");
         return ResponseEntity.status(HttpStatus.CREATED).body(pedido);

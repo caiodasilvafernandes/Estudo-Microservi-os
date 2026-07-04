@@ -1,6 +1,7 @@
 package br.com.caiofernandes.pedido.api.dto;
 
 import br.com.caiofernandes.pedido.api.entity.ItemPedido;
+import br.com.caiofernandes.pedido.api.entity.Pedido;
 
 import java.util.List;
 
