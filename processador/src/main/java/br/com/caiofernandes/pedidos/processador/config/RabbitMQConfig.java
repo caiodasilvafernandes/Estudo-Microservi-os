@@ -15,12 +15,20 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @Configuration
 public class RabbitMQConfig {
     @Value("${rabbitmq.exchange.name}")
     private String exchangeName;
     @Value("${rabbitmq.queue.name}")
-    private String queueName; 
+    private String queueName;
+
+    @Value("${rabbitmq.exchange.dlx.name}")
+    private String exchangeDlxName;
+    @Value("${rabbitmq.queue.dlq.name}")
+    private String queueDlqName;
 
     @Bean
     public FanoutExchange pedidosExchange(){
@@ -28,13 +36,31 @@ public class RabbitMQConfig {
     }
 
     @Bean
+    public FanoutExchange pedidosDlxExchange(){
+        return new FanoutExchange(exchangeDlxName);
+    }
+
+    @Bean
     public Queue processadorQueue(){
-        return new Queue(queueName);
+        Map<String, Object> argumentos = new HashMap<>();
+        argumentos.put("x-dead-letter-exchange", exchangeDlxName);
+
+        return new Queue(queueName, true, false, false, argumentos);
+    }
+
+    @Bean
+    public Queue processadorDlqQueue(){
+        return new Queue(queueDlqName);
     }
 
     @Bean
     public Binding binding(){
         return BindingBuilder.bind(processadorQueue ()).to(pedidosExchange());
+    }
+
+    @Bean
+    public Binding bindingDlq(){
+        return BindingBuilder.bind(processadorDlqQueue ()).to(pedidosDlxExchange());
     }
 
     @Bean
